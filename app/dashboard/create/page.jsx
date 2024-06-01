@@ -18,6 +18,21 @@ import {
 import { IconUserPlus } from "@tabler/icons-react";
 
 export default function Create() {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { client_name } = Object.fromEntries(new FormData(e.currentTarget));
+
+    console.log(client_name);
+
+    await fetch("http://localhost:3000/api/client", {
+      method: "POST",
+      body: JSON.stringify({
+        client_name: client_name,
+      }),
+    });
+  };
+
   return (
     <>
       <Flex
@@ -59,6 +74,9 @@ export default function Create() {
           Create a new Subscription
         </Button>
       </Flex>
+      <form onSubmit={handleSubmit}>
+        <input name="client_name" />
+      </form>
     </>
   );
 }
