@@ -9,27 +9,35 @@ export async function GET(request) {
 
   const { data } = await supabase.from("clients").select();
 
-  console.log(data);
-
-  return new NextResponse(JSON.stringify(data));
+  return new NextResponse(
+    JSON.stringify({
+      data: data,
+      status: 200,
+    })
+  );
 }
 
 export async function POST(request) {
   const body = await request.json();
 
-  console.log(body.client_name);
+  console.log(body);
 
-  // const supabase = createClient(
-  //   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  //   process.env.NEXT_PUBLIC_SUPABASE_KEY
-  // );
+  const { client_name, client_company, onboarding_cost, subscription_cost } =
+    body;
 
-  // const { data } = await supabase
-  //   .from("clients")
-  //   .insert({ client_name: "Mehdi Ahmed" });
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY
+  );
 
-  // console.log(data);
+  const data = await supabase.from("clients").insert({
+    client_name: client_name,
+    client_company_name: client_company,
+    onboarding_cost: onboarding_cost,
+    subscription_cost: subscription_cost,
+  });
 
-  // return new NextResponse(JSON.stringify(data));
-  return new NextResponse(JSON.stringify("vakks"));
+  console.log(data);
+
+  return new NextResponse(JSON.stringify(data));
 }

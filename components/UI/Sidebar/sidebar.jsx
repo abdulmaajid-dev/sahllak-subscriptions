@@ -26,7 +26,7 @@ const data = [
   },
   {
     link: "/dashboard/create",
-    label: "Create a subscription plan",
+    label: "Create a new Subscriber",
     icon: IconClipboardPlus,
   },
 ];
