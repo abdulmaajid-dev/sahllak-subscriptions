@@ -13,11 +13,17 @@ import {
   rem,
 } from "@mantine/core";
 
+import { useClipboard } from "@mantine/hooks";
+
 import ActiveSubscriptionsSkeleton from "../../../components/UI/Skeleton/ActiveSubscriptionsSkeleton";
 import { IconArrowUpRight } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 
+import { IconCopy, IconCheck } from "@tabler/icons-react";
+
 export default function Subscriptions() {
+  const clipboard = useClipboard();
+
   const getAuthorizationToken = async () => {
     setLoading(true);
 
@@ -32,35 +38,6 @@ export default function Subscriptions() {
     setRowData(response.data);
 
     setLoading(false);
-
-    // const key = process.env.NEXT_PUBLIC_PAYMOB_API_KEY;
-
-    // const data = {
-    //   api_key: key,
-    // };
-
-    // const response = await axios
-    //   .post("https://oman.paymob.com/api/auth/tokens", data)
-    //   .then((res) => {
-    //     return res.data.token;
-    //   });
-
-    // console.log("Response:", response);
-
-    // const config = {
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: response,
-    //   },
-    // };
-
-    // const activeSubscriptions = await axios
-    //   .get("https://oman.paymob.com/api/acceptance/subscription-plans", config)
-    //   .then((res) => {
-    //     return res.data;
-    //   });
-
-    // console.log("Active Subscriptions: ", activeSubscriptions);
   };
 
   const [scrolled, setScrolled] = useState(false);
@@ -71,14 +48,21 @@ export default function Subscriptions() {
     getAuthorizationToken();
   }, []);
 
-  const getPaymentLink = async () => {
+  const getPaymentLink = async (id) => {
     const response = await fetch("http://localhost:3000/api/paymob", {
       method: "POST",
+      body: JSON.stringify({
+        id: id,
+      }),
     }).then((res) => {
       return res.json();
     });
 
-    console.log(response);
+    const { client_secret } = response;
+
+    clipboard.copy(
+      `https://oman.paymob.com/unifiedcheckout/?publicKey=${process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY}&clientSecret=${client_secret}`
+    );
   };
 
   return (
@@ -128,7 +112,7 @@ export default function Subscriptions() {
         padding="md"
         radius="md"
         withBorder
-        w={rem(1500)}
+        w={rem(1200)}
         ml={50}
         mt={50}
       >
@@ -156,7 +140,25 @@ export default function Subscriptions() {
                       <Table.Td>{row.client_company_name}</Table.Td>
                       <Table.Td>{row.client_secret}</Table.Td>
                       <Table.Td>
-                        <Button radius="l" onClick={getPaymentLink}>
+                        <Button
+                          radius="l"
+                          onClick={() => {
+                            getPaymentLink(row.id);
+                          }}
+                          rightSection={
+                            clipboard.copied ? (
+                              <IconCheck
+                                style={{ width: rem(20), height: rem(20) }}
+                                stroke={1.5}
+                              />
+                            ) : (
+                              <IconCopy
+                                style={{ width: rem(20), height: rem(20) }}
+                                stroke={1.5}
+                              />
+                            )
+                          }
+                        >
                           Generate Payment Link
                         </Button>
                       </Table.Td>

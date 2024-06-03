@@ -47,8 +47,8 @@ export default function Create() {
       body: JSON.stringify({
         client_name: form.values.clientName,
         client_company: form.values.clientCompany,
-        onboarding_cost: form.values.onboardingCost,
-        subscription_cost: form.values.subscriptionCost,
+        onboarding_cost: form.values.onboardingCost * 1000,
+        subscription_cost: form.values.subscriptionCost * 1000,
       }),
     });
   };
@@ -98,7 +98,6 @@ export default function Create() {
         <Text size="lg" fw={500}>
           Please fill in the Client details
         </Text>
-
         <Divider my="lg" />
 
         <form>
@@ -127,7 +126,7 @@ export default function Create() {
               type="number"
               required
               label="Onboarding Cost"
-              placeholder="Enter value in 1000s (For eg: 1000 = 1 OMR)"
+              placeholder="Example: 1, 5, 10"
               value={form.values.onboardingCost}
               onChange={(event) =>
                 form.setFieldValue("onboardingCost", event.currentTarget.value)
@@ -138,7 +137,7 @@ export default function Create() {
               type="number"
               required
               label="Subscription Cost"
-              placeholder="Enter value in 1000s (For eg: 1000 = 1 OMR)"
+              placeholder="Example: 50, 100, 200"
               value={form.values.subscriptionCost}
               onChange={(event) =>
                 form.setFieldValue(
@@ -149,7 +148,6 @@ export default function Create() {
               radius="md"
             />
           </Stack>
-
           <Group justify="flex-end" mt="xl">
             <Button radius="l" onClick={handleSubmit}>
               Add Client
