@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 export async function POST(request) {
   const data = await request.json();
@@ -8,8 +9,6 @@ export async function POST(request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_KEY
   );
-
-  console.log("Token API => ", data);
 
   if ("type" in data) {
     //check if token request coming in,
@@ -32,9 +31,19 @@ export async function POST(request) {
     console.log(updated);
   }
 
-  // if ("paymob_request_id" in data) {
-  //   const { data } = await supabase.from("clients").select("client_card_token");
-  // }
+  if ("paymob_request_id" in data) {
+    const { transaction } = data;
+
+    console.log(transaction);
+
+    const { id } = transaction.order;
+
+    console.log(id);
+
+    if (transaction.success == true) {
+      console.log("Fetching token connected to order ID => ", id);
+    }
+  }
 
   //const client_secret = data.intention.client_secret ?? null;
 

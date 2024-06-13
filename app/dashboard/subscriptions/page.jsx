@@ -113,7 +113,7 @@ export default function Subscriptions() {
         padding="md"
         radius="md"
         withBorder
-        w={rem(1200)}
+        w={rem(1000)}
         ml={50}
         mt={50}
       >
@@ -124,7 +124,7 @@ export default function Subscriptions() {
             h={rem(500)}
             onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
           >
-            <Table miw={500} w={rem(1000)}>
+            <Table w={rem(1000)}>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Client Name</Table.Th>
