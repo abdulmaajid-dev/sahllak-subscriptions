@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   const body = await request.json();
-  const { id } = body;
+  const { id, onboardingCost } = body;
 
   const myHeaders = new Headers();
 
@@ -14,7 +14,7 @@ export async function POST(request) {
   myHeaders.append("Content-Type", "application/json");
 
   const raw = JSON.stringify({
-    amount: 100,
+    amount: parseInt(onboardingCost),
     currency: "OMR",
     payment_methods: [1545, 1546],
     billing_data: {

@@ -48,11 +48,12 @@ export default function Subscriptions() {
     getAuthorizationToken();
   }, []);
 
-  const getPaymentLink = async (id) => {
+  const getPaymentLink = async (id, oc) => {
     const response = await fetch("http://localhost:3000/api/paymob", {
       method: "POST",
       body: JSON.stringify({
         id: id,
+        onboardingCost: oc,
       }),
     }).then((res) => {
       return res.json();
@@ -123,13 +124,15 @@ export default function Subscriptions() {
             h={rem(500)}
             onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
           >
-            <Table miw={500}>
+            <Table miw={500} w={rem(1000)}>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Client Name</Table.Th>
                   <Table.Th>Company Name</Table.Th>
-                  <Table.Th>Client Secret</Table.Th>
-                  <Table.Th>Actions</Table.Th>
+                  <Table.Th>Onboarding Cost</Table.Th>
+                  <Table.Th>Subscription Cost</Table.Th>
+                  <Table.Th>Initial Action</Table.Th>
+                  <Table.Th>Initial Action Success</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -138,12 +141,14 @@ export default function Subscriptions() {
                     <Table.Tr key={row.id}>
                       <Table.Td>{row.client_name}</Table.Td>
                       <Table.Td>{row.client_company_name}</Table.Td>
-                      <Table.Td>{row.client_secret}</Table.Td>
+                      <Table.Td>{row.onboarding_cost / 1000} OMR</Table.Td>
+                      <Table.Td>{row.subscription_cost / 1000} OMR</Table.Td>
                       <Table.Td>
                         <Button
+                          size="sm"
                           radius="l"
                           onClick={() => {
-                            getPaymentLink(row.id);
+                            getPaymentLink(row.id, row.onboarding_cost);
                           }}
                           rightSection={
                             clipboard.copied ? (
@@ -159,9 +164,10 @@ export default function Subscriptions() {
                             )
                           }
                         >
-                          Generate Payment Link
+                          Create payment
                         </Button>
                       </Table.Td>
+                      <Table.Td></Table.Td>
                     </Table.Tr>
                   ))}
               </Table.Tbody>
