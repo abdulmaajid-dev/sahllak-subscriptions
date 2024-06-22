@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Group, Code } from "@mantine/core";
 import {
@@ -33,6 +34,15 @@ const data = [
 
 export default function Sidebar() {
   const [active, setActive] = useState("Billing");
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("http://localhost:3000/api/authentication", {
+      method: "GET",
+    });
+
+    router.push("/");
+  };
 
   const links = data.map((item) => (
     <Link
@@ -55,18 +65,14 @@ export default function Sidebar() {
         <Group className={classes.header} justify="space-between">
           <IconUserCircle size={28} color="white" />
           <Code fw={700} className={classes.version}>
-            v3.1.2
+            v0.0.1
           </Code>
         </Group>
         {links}
       </div>
 
       <div className={classes.footer}>
-        <a
-          href="#"
-          className={classes.link}
-          onClick={(event) => event.preventDefault()}
-        >
+        <a href="#" className={classes.link} onClick={handleLogout}>
           <IconLogout className={classes.linkIcon} stroke={1.5} />
           <span>Logout</span>
         </a>

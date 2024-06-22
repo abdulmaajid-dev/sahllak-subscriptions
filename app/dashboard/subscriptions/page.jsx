@@ -66,6 +66,18 @@ export default function Subscriptions() {
     );
   };
 
+  const handleChargeClient = async (id, sc) => {
+    const response = await fetch("http://localhost:3000/api/subscription", {
+      method: "POST",
+      body: JSON.stringify({
+        id: id,
+        subscriptionCost: sc,
+      }),
+    }).then((res) => {
+      return res.json();
+    });
+  };
+
   return (
     <>
       <Title ml={50} mt={50} style={{ fontWeight: 800 }}>
@@ -113,7 +125,7 @@ export default function Subscriptions() {
         padding="md"
         radius="md"
         withBorder
-        w={rem(1000)}
+        w={rem(1300)}
         ml={50}
         mt={50}
       >
@@ -124,7 +136,7 @@ export default function Subscriptions() {
             h={rem(500)}
             onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
           >
-            <Table w={rem(1000)}>
+            <Table w={rem(1300)}>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Client Name</Table.Th>
@@ -133,6 +145,8 @@ export default function Subscriptions() {
                   <Table.Th>Subscription Cost</Table.Th>
                   <Table.Th>Initial Action</Table.Th>
                   <Table.Th>Initial Action Success</Table.Th>
+                  <Table.Th>Subscription Action</Table.Th>
+                  <Table.Th>Subscription Date</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -147,6 +161,7 @@ export default function Subscriptions() {
                         <Button
                           size="sm"
                           radius="l"
+                          disabled={row.client_card ? true : false}
                           onClick={() => {
                             getPaymentLink(row.id, row.onboarding_cost);
                           }}
@@ -167,7 +182,23 @@ export default function Subscriptions() {
                           Create payment
                         </Button>
                       </Table.Td>
-                      <Table.Td></Table.Td>
+                      <Table.Td>
+                        {row.client_card ? "Success" : "Failed"}
+                      </Table.Td>
+                      <Table.Td>
+                        <Button
+                          size="sm"
+                          radius="l"
+                          onClick={() => {
+                            handleChargeClient(row.id, row.subscription_cost);
+                          }}
+                        >
+                          Charge Client
+                        </Button>
+                      </Table.Td>
+                      <Table.Td>
+                        {row.sub_date_start ? row.sub_date_start : ""}
+                      </Table.Td>
                     </Table.Tr>
                   ))}
               </Table.Tbody>
