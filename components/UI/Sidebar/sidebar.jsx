@@ -37,7 +37,7 @@ export default function Sidebar() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await fetch("http://localhost:3000/api/authentication", {
+    await fetch("/api/authentication", {
       method: "GET",
     });
 

@@ -12,7 +12,7 @@ export default function Login() {
   const handleLogin = async () => {
     if (username === "sahllak-admin") {
       if (password === "7878Proj") {
-        await fetch("http://localhost:3000/api/authentication", {
+        await fetch("/api/authentication", {
           method: "POST",
         });
         router.push("/dashboard/subscriptions");

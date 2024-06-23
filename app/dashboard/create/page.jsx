@@ -3,16 +3,11 @@ import { useToggle, upperFirst } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import {
   TextInput,
-  PasswordInput,
-  NumberInput,
   Text,
   Paper,
   Group,
-  PaperProps,
   Button,
   Divider,
-  Checkbox,
-  Anchor,
   Stack,
   Flex,
   Title,
@@ -42,7 +37,7 @@ export default function Create() {
 
     form.reset();
 
-    await fetch("http://localhost:3000/api/client", {
+    await fetch("/api/client", {
       method: "POST",
       body: JSON.stringify({
         client_name: form.values.clientName,

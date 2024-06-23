@@ -27,7 +27,7 @@ export default function Subscriptions() {
   const getAuthorizationToken = async () => {
     setLoading(true);
 
-    const response = await fetch("http://localhost:3000/api/client", {
+    const response = await fetch("/api/client", {
       method: "GET",
     }).then((res) => {
       return res.json();
@@ -49,7 +49,7 @@ export default function Subscriptions() {
   }, []);
 
   const getPaymentLink = async (id, oc) => {
-    const response = await fetch("http://localhost:3000/api/paymob", {
+    const response = await fetch("/api/paymob", {
       method: "POST",
       body: JSON.stringify({
         id: id,
@@ -67,7 +67,7 @@ export default function Subscriptions() {
   };
 
   const handleChargeClient = async (id, sc) => {
-    const response = await fetch("http://localhost:3000/api/subscription", {
+    const response = await fetch("/api/subscription", {
       method: "POST",
       body: JSON.stringify({
         id: id,
