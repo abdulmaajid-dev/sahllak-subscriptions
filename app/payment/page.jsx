@@ -129,11 +129,11 @@ export default function Payment() {
 
     const { client_secret } = response;
 
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 7000));
 
-    // window.location.replace(
-    //   `https://oman.paymob.com/unifiedcheckout/?publicKey=${process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY}&clientSecret=${client_secret}`
-    // );
+    window.location.replace(
+      `https://oman.paymob.com/unifiedcheckout/?publicKey=${process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY}&clientSecret=${client_secret}`
+    );
   };
 
   useEffect(() => {
