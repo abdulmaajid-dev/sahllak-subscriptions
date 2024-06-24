@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import {
   Title,
   Text,
@@ -11,15 +10,15 @@ import {
   Card,
   Button,
   rem,
+  Badge,
 } from "@mantine/core";
+import Notification from "../../../components/UI/Notification/Notification";
 
 import { useClipboard } from "@mantine/hooks";
 
 import ActiveSubscriptionsSkeleton from "../../../components/UI/Skeleton/ActiveSubscriptionsSkeleton";
 import { IconArrowUpRight } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
-
-import { IconCopy, IconCheck } from "@tabler/icons-react";
 
 export default function Subscriptions() {
   const clipboard = useClipboard();
@@ -43,6 +42,7 @@ export default function Subscriptions() {
   const [scrolled, setScrolled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rowData, setRowData] = useState([]);
+  const [opened, setOpened] = useState(false);
 
   useEffect(() => {
     getAuthorizationToken();
@@ -64,6 +64,10 @@ export default function Subscriptions() {
     clipboard.copy(
       `https://oman.paymob.com/unifiedcheckout/?publicKey=${process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY}&clientSecret=${client_secret}`
     );
+
+    setOpened(true);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    setOpened(false);
   };
 
   const handleChargeClient = async (id, sc) => {
@@ -90,35 +94,44 @@ export default function Subscriptions() {
           Active Subscription Plans
         </Text>
       </Title>
-      <Paper withBorder p="md" radius="md" mt={50} ml={50} w={500}>
-        <Group justify="apart">
-          <div>
-            <Text c="dimmed" tt="uppercase" fw={700} fz="xs">
-              Total
-            </Text>
-            <Text fw={700} fz="xl">
-              3
-            </Text>
-          </div>
-          <ThemeIcon
-            color="gray"
-            variant="light"
-            style={{
-              color: "var(--mantine-color-teal-6)",
-            }}
-            size={38}
-            radius="md"
-          >
-            <IconArrowUpRight size="1.8rem" stroke={1.5} />
-          </ThemeIcon>
-        </Group>
-        <Text c="dimmed" fz="sm" mt="md">
-          <Text component="span" c={5 > 0 ? "teal" : "red"} fw={700}>
-            5%
-          </Text>{" "}
-          {5 > 0 ? "increase" : "decrease"} compared to last month
-        </Text>
-      </Paper>
+
+      <Group>
+        <Paper withBorder p="md" radius="md" mt={50} ml={50} w={500}>
+          <Group justify="apart">
+            <div>
+              <Text c="dimmed" tt="uppercase" fw={700} fz="xs">
+                Total
+              </Text>
+              <Text fw={700} fz="xl">
+                3
+              </Text>
+            </div>
+            <ThemeIcon
+              color="gray"
+              variant="light"
+              style={{
+                color: "var(--mantine-color-teal-6)",
+              }}
+              size={38}
+              radius="md"
+            >
+              <IconArrowUpRight size="1.8rem" stroke={1.5} />
+            </ThemeIcon>
+          </Group>
+          <Text c="dimmed" fz="sm" mt="md">
+            <Text component="span" c={5 > 0 ? "teal" : "red"} fw={700}>
+              5%
+            </Text>{" "}
+            {5 > 0 ? "increase" : "decrease"} compared to last month
+          </Text>
+        </Paper>
+        <Notification
+          opened={opened}
+          color="green"
+          title="Payment Link Created!"
+          description="The payment link is automatically copied to your clipboard! Just paste to open it or send it to a client."
+        />
+      </Group>
 
       <Card
         shadow="lg"
@@ -155,8 +168,20 @@ export default function Subscriptions() {
                     <Table.Tr key={row.id}>
                       <Table.Td>{row.client_name}</Table.Td>
                       <Table.Td>{row.client_company_name}</Table.Td>
-                      <Table.Td>{row.onboarding_cost / 1000} OMR</Table.Td>
-                      <Table.Td>{row.subscription_cost / 1000} OMR</Table.Td>
+                      <Table.Td>
+                        <Group justify="center" mt="sm" mb="xs">
+                          <Badge color="green" size="lg">
+                            {row.onboarding_cost / 1000} OMR
+                          </Badge>
+                        </Group>
+                      </Table.Td>
+                      <Table.Td>
+                        <Group justify="center" mt="sm" mb="xs">
+                          <Badge color="cyan" size="lg">
+                            {row.subscription_cost / 1000} OMR
+                          </Badge>
+                        </Group>
+                      </Table.Td>
                       <Table.Td>
                         <Button
                           size="sm"
@@ -165,25 +190,24 @@ export default function Subscriptions() {
                           onClick={() => {
                             getPaymentLink(row.id, row.onboarding_cost);
                           }}
-                          rightSection={
-                            clipboard.copied ? (
-                              <IconCheck
-                                style={{ width: rem(20), height: rem(20) }}
-                                stroke={1.5}
-                              />
-                            ) : (
-                              <IconCopy
-                                style={{ width: rem(20), height: rem(20) }}
-                                stroke={1.5}
-                              />
-                            )
-                          }
                         >
                           Create payment
                         </Button>
                       </Table.Td>
                       <Table.Td>
-                        {row.client_card ? "Success" : "Failed"}
+                        {row.client_card ? (
+                          <Group justify="center" mt="sm" mb="xs">
+                            <Badge color="green" size="lg">
+                              Success
+                            </Badge>
+                          </Group>
+                        ) : (
+                          <Group justify="center" mt="sm" mb="xs">
+                            <Badge color="red" size="lg">
+                              Unsuccessful
+                            </Badge>
+                          </Group>
+                        )}
                       </Table.Td>
                       <Table.Td>
                         <Button

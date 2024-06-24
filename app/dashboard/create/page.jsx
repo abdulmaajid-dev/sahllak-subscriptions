@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useToggle, upperFirst } from "@mantine/hooks";
-import { useForm } from "@mantine/form";
+import { hasLength, useForm } from "@mantine/form";
 import {
   TextInput,
   Text,
@@ -21,6 +21,7 @@ import Notification from "../../../components/UI/Notification/Notification";
 
 export default function Create() {
   const [opened, setOpened] = useState(false);
+  const [error, setError] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -34,10 +35,17 @@ export default function Create() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log(form.values.clientName);
-    console.log(form.values.clientCompany);
-    console.log(form.values.onboardingCost);
-    console.log(form.values.subscriptionCost);
+    if (
+      !form.values.clientCompany ||
+      !form.values.clientName ||
+      !form.values.onboardingCost ||
+      !form.values.subscriptionCost
+    ) {
+      setError(true);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      setError(false);
+      return;
+    }
 
     form.reset();
 
@@ -162,6 +170,12 @@ export default function Create() {
           color="green"
           title="User added"
           description="The subscription user has been added, Please head to the dashboard to view them."
+        />
+        <Notification
+          opened={error}
+          color="red"
+          title="User Adding failed"
+          description="Please ensure all the fields are filled."
         />
       </Paper>
     </>
