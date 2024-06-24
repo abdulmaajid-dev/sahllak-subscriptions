@@ -24,20 +24,22 @@ export async function POST(request) {
 
   if ("paymob_request_id" in data) {
     const { transaction } = data;
+    const { client_secret } = data.intention;
 
     const { id } = transaction.order;
+    //update client order_id
+    await supabase
+      .from("clients")
+      .update({ order_id: id })
+      .eq("client_secret", client_secret);
 
     const check = await supabase.from("tokens").select().eq("order_id", id);
 
     if (check.data.length < 1) {
       //update status in database of not receiving client_token
-      const { client_secret } = data.intention;
-
-      const updated = await supabase
+      await supabase
         .from("clients")
-        .update({
-          client_card_token: false,
-        })
+        .update({ client_card_token: false, is_refunded: true })
         .eq("client_secret", client_secret);
 
       const myHeaders = new Headers();
@@ -98,7 +100,10 @@ export async function POST(request) {
 
       const clientCard = await supabase
         .from("clients")
-        .update({ client_card: token, initial_payment_success: true })
+        .update({
+          client_card: token,
+          initial_payment_success: true,
+        })
         .eq("client_secret", client_secret);
 
       console.log(clientCard);
@@ -108,11 +113,4 @@ export async function POST(request) {
   return new Response(JSON.stringify({ order_id_found: true }), {
     status: 200,
   });
-}
-
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const success = searchParams.get("success");
-
-  return NextResponse.redirect(`http://localhost:3000/dashboard`);
 }

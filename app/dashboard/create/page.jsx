@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useToggle, upperFirst } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import {
@@ -16,8 +17,11 @@ import {
 
 //Icons
 import { IconUserPlus } from "@tabler/icons-react";
+import Notification from "../../../components/UI/Notification/Notification";
 
 export default function Create() {
+  const [opened, setOpened] = useState(false);
+
   const form = useForm({
     initialValues: {
       clientName: "",
@@ -46,6 +50,10 @@ export default function Create() {
         subscription_cost: form.values.subscriptionCost * 1000,
       }),
     });
+
+    setOpened(true);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    setOpened(false);
   };
 
   return (
@@ -149,6 +157,12 @@ export default function Create() {
             </Button>
           </Group>
         </form>
+        <Notification
+          opened={opened}
+          color="green"
+          title="User added"
+          description="The subscription user has been added, Please head to the dashboard to view them."
+        />
       </Paper>
     </>
   );
