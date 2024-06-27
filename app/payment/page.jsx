@@ -30,7 +30,7 @@ export default function Payment() {
     <Card shadow="lg" padding="lg" radius="md" withBorder>
       <Group justify="center" mt="md" mb="xs">
         <Badge color="green" size="lg">
-          Please wait while we confirm your
+          Please wait while we confirm your payment
         </Badge>
       </Group>
       <Card.Section>

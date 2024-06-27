@@ -19,7 +19,10 @@ export async function POST(request) {
     const inserted = await supabase
       .from("tokens")
       .insert({ token: obj.token, order_id: obj.order_id });
-    console.log(inserted);
+
+    console.log("Token Inserted => ", inserted);
+
+    return new Response(JSON.stringify({ token_saved: true }), { status: 200 });
   }
 
   if ("paymob_request_id" in data) {
@@ -72,6 +75,8 @@ export async function POST(request) {
 
       const { success } = finalResponse;
 
+      console.log("Payment Refunded => ", success);
+
       return new Response(
         JSON.stringify(
           { order_id_found: false, refunded: success },
@@ -81,6 +86,7 @@ export async function POST(request) {
     }
 
     if (transaction.is_refunded == true) {
+      console.log("Transaction refunded!");
       return new Response(JSON.stringify({ transaction_refunded: true }), {
         status: 200,
       });
@@ -106,7 +112,10 @@ export async function POST(request) {
         })
         .eq("client_secret", client_secret);
 
-      console.log(clientCard);
+      console.log("Token linked to Client => ", clientCard);
+      return new Response(JSON.stringify({ client_linked_to_token: true }), {
+        status: 200,
+      });
     }
   }
 
