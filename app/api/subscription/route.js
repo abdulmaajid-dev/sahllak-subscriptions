@@ -96,9 +96,14 @@ export async function POST(request) {
   if (success == true) {
     const date = new Date();
 
+    const localDate = date.toLocaleDateString();
+    const localTime = date.toLocaleTimeString();
+
+    const finalDate = localDate + " T " + localTime;
+
     await supabase
       .from("clients")
-      .update({ sub_date_start: date })
+      .update({ sub_date_start: finalDate })
       .eq("id", id);
   }
 

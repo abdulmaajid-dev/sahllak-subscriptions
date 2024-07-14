@@ -22,6 +22,7 @@ import { useState, useEffect } from "react";
 
 export default function Subscriptions() {
   const clipboard = useClipboard();
+  const [buttonDisabled, setButtonDisabled] = useState(false);
 
   const getAuthorizationToken = async () => {
     setLoading(true);
@@ -43,6 +44,7 @@ export default function Subscriptions() {
   const [loading, setLoading] = useState(false);
   const [rowData, setRowData] = useState([]);
   const [opened, setOpened] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     getAuthorizationToken();
@@ -71,6 +73,7 @@ export default function Subscriptions() {
   };
 
   const handleChargeClient = async (id, sc) => {
+    setButtonDisabled(true);
     const response = await fetch("/api/subscription", {
       method: "POST",
       body: JSON.stringify({
@@ -80,6 +83,11 @@ export default function Subscriptions() {
     }).then((res) => {
       return res.json();
     });
+    setSuccess(true);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    setButtonDisabled(false);
+    setSuccess(false);
+    getAuthorizationToken();
   };
 
   return (
@@ -130,6 +138,12 @@ export default function Subscriptions() {
           color="green"
           title="Payment Link Created!"
           description="The payment link is automatically copied to your clipboard! Just paste to open it or send it to a client."
+        />
+        <Notification
+          opened={success}
+          color="green"
+          title="Subscription activated"
+          description="The client was successfully charged for their subscription payment."
         />
       </Group>
 
@@ -213,6 +227,7 @@ export default function Subscriptions() {
                         <Button
                           size="sm"
                           radius="l"
+                          disabled={buttonDisabled}
                           onClick={() => {
                             handleChargeClient(row.id, row.subscription_cost);
                           }}

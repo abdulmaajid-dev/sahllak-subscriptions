@@ -7,7 +7,10 @@ export async function GET(request) {
     process.env.NEXT_PUBLIC_SUPABASE_KEY
   );
 
-  const { data } = await supabase.from("clients").select();
+  const { data } = await supabase
+    .from("clients")
+    .select("*")
+    .order("created_at", { ascending: true });
 
   return new NextResponse(
     JSON.stringify({
