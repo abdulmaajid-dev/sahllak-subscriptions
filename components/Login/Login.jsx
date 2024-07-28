@@ -8,14 +8,17 @@ import classes from "./Login.module.css";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [opened, setOpened] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
+    setLoading(true);
     if (!username || !password) {
       setOpened(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setOpened(false);
+      setLoading(false);
       return;
     }
     if (
@@ -26,10 +29,12 @@ export default function Login() {
         method: "POST",
       });
       router.push("/dashboard/subscriptions");
+      setLoading(false);
     } else {
       setOpened(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setOpened(false);
+      setLoading(false);
       return;
     }
   };
@@ -53,7 +58,13 @@ export default function Login() {
           size="md"
           onChange={(event) => setPassword(event.currentTarget.value)}
         />
-        <Button fullWidth mt="xl" size="md" onClick={handleLogin}>
+        <Button
+          fullWidth
+          mt="xl"
+          size="md"
+          onClick={handleLogin}
+          loading={loading}
+        >
           Login
         </Button>
         <Notification
