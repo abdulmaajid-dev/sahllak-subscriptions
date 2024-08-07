@@ -1,6 +1,9 @@
 import "@mantine/core/styles.css";
 import React from "react";
 import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
+
+import "@mantine/notifications/styles.css";
 import { theme } from "../theme";
 
 export const metadata = {
@@ -20,7 +23,10 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <MantineProvider theme={theme}>{children}</MantineProvider>
+        <MantineProvider theme={theme}>
+          <Notifications />
+          {children}
+        </MantineProvider>
       </body>
     </html>
   );

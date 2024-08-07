@@ -20,9 +20,15 @@ import ActiveSubscriptionsSkeleton from "../../../components/UI/Skeleton/ActiveS
 import { IconArrowUpRight } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 
+import { createClient } from "@supabase/supabase-js";
+
 export default function Subscriptions() {
   const clipboard = useClipboard();
   const [buttonDisabled, setButtonDisabled] = useState(false);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY
+  );
 
   const getAuthorizationToken = async () => {
     setLoading(true);
@@ -45,17 +51,21 @@ export default function Subscriptions() {
   const [rowData, setRowData] = useState([]);
   const [opened, setOpened] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [linkLoading, setLinkLoading] = useState(false);
 
   useEffect(() => {
     getAuthorizationToken();
   }, []);
 
-  const getPaymentLink = async (id, oc) => {
+  const getPaymentLink = async (id, oc, name, email) => {
+    setLinkLoading(true);
     const response = await fetch("/api/paymob", {
       method: "POST",
       body: JSON.stringify({
         id: id,
         onboardingCost: oc,
+        clientName: name,
+        clientEmail: email,
       }),
     }).then((res) => {
       return res.json();
@@ -67,9 +77,26 @@ export default function Subscriptions() {
       `https://oman.paymob.com/unifiedcheckout/?publicKey=${process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY}&clientSecret=${client_secret}`
     );
 
+    const { data, error } = await supabase
+      .from("clients")
+      .select("failed_attempts")
+      .eq("id", 55)
+      .single();
+    console.log(data);
+
+    const { failed_attempts } = data;
+
+    const { data2 } = await supabase
+      .from("clients")
+      .update({ failed_attempts: failed_attempts + 1 })
+      .eq("id", 55);
+
+    console.log(data2);
+
     setOpened(true);
     await new Promise((resolve) => setTimeout(resolve, 3000));
     setOpened(false);
+    setLinkLoading(false);
   };
 
   const handleChargeClient = async (id, sc) => {
@@ -152,7 +179,7 @@ export default function Subscriptions() {
         padding="md"
         radius="md"
         withBorder
-        w={rem(1300)}
+        w={rem(1200)}
         ml={50}
         mt={50}
       >
@@ -172,6 +199,7 @@ export default function Subscriptions() {
                   <Table.Th>Subscription Cost</Table.Th>
                   <Table.Th>Initial Action</Table.Th>
                   <Table.Th>Initial Action Success</Table.Th>
+                  <Table.Th>Attempts Failed</Table.Th>
                   <Table.Th>Subscription Action</Table.Th>
                   <Table.Th>Subscription Date</Table.Th>
                 </Table.Tr>
@@ -201,8 +229,14 @@ export default function Subscriptions() {
                           size="sm"
                           radius="l"
                           disabled={row.client_card ? true : false}
+                          loading={linkLoading}
                           onClick={() => {
-                            getPaymentLink(row.id, row.onboarding_cost);
+                            getPaymentLink(
+                              row.id,
+                              row.onboarding_cost,
+                              row.client_name,
+                              row.email
+                            );
                           }}
                         >
                           Create payment
@@ -224,10 +258,17 @@ export default function Subscriptions() {
                         )}
                       </Table.Td>
                       <Table.Td>
+                        <Group justify="center" mt="sm" mb="xs">
+                          <Badge color="indigo" size="lg">
+                            {row.failed_attempts}
+                          </Badge>
+                        </Group>
+                      </Table.Td>
+                      <Table.Td>
                         <Button
                           size="sm"
                           radius="l"
-                          disabled={buttonDisabled}
+                          disabled={row.client_card ? false : true}
                           onClick={() => {
                             handleChargeClient(row.id, row.subscription_cost);
                           }}

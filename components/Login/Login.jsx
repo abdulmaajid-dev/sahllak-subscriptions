@@ -46,7 +46,7 @@ export default function Login() {
         </Title>
         <TextInput
           label="Username"
-          placeholder="admin"
+          placeholder="Your username"
           size="md"
           onChange={(event) => setUsername(event.currentTarget.value)}
         />

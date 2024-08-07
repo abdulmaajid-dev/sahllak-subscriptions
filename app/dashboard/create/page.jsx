@@ -14,6 +14,7 @@ import {
   Title,
   rem,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 
 //Icons
 import { IconUserPlus } from "@tabler/icons-react";
@@ -26,6 +27,7 @@ export default function Create() {
   const form = useForm({
     initialValues: {
       clientName: "",
+      email: "",
       clientCompany: "",
       onboardingCost: "",
       subscriptionCost: "",
@@ -39,7 +41,8 @@ export default function Create() {
       !form.values.clientCompany ||
       !form.values.clientName ||
       !form.values.onboardingCost ||
-      !form.values.subscriptionCost
+      !form.values.subscriptionCost ||
+      !form.values.email
     ) {
       setError(true);
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -53,10 +56,15 @@ export default function Create() {
       method: "POST",
       body: JSON.stringify({
         client_name: form.values.clientName,
+        email: form.values.email,
         client_company: form.values.clientCompany,
         onboarding_cost: form.values.onboardingCost * 1000,
         subscription_cost: form.values.subscriptionCost * 1000,
       }),
+    });
+    notifications.show({
+      title: "Default notification",
+      message: "hello world!",
     });
 
     setOpened(true);
@@ -125,8 +133,18 @@ export default function Create() {
             />
             <TextInput
               required
+              label="Client Email"
+              placeholder="mehdi@sahllak.com"
+              value={form.values.email}
+              onChange={(event) =>
+                form.setFieldValue("email", event.currentTarget.value)
+              }
+              radius="md"
+            />
+            <TextInput
+              required
               label="Organization name"
-              placeholder="Mehdi Ahmed"
+              placeholder="Sahllak Innovations LLC."
               value={form.values.clientCompany}
               onChange={(event) =>
                 form.setFieldValue("clientCompany", event.currentTarget.value)

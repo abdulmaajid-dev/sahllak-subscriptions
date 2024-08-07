@@ -25,8 +25,13 @@ export async function POST(request) {
 
   console.log(body);
 
-  const { client_name, client_company, onboarding_cost, subscription_cost } =
-    body;
+  const {
+    client_name,
+    email,
+    client_company,
+    onboarding_cost,
+    subscription_cost,
+  } = body;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -35,6 +40,7 @@ export async function POST(request) {
 
   const data = await supabase.from("clients").insert({
     client_name: client_name,
+    email: email,
     client_company_name: client_company,
     onboarding_cost: onboarding_cost,
     subscription_cost: subscription_cost,
