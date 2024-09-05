@@ -11,7 +11,7 @@ export async function POST(req) {
     },
     Message: {
       Body: {
-        Text: {
+        Html: {
           Charset: "UTF-8",
           Data: body,
         },
@@ -38,5 +38,5 @@ export async function POST(req) {
       return new Response("Email was not sent", { status: 400 });
     });
 
-  return new Response("Method not allowed", { status: 400 });
+  return new Response("Email sent successfully ", { status: 200 });
 }

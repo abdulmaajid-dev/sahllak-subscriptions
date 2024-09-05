@@ -65,7 +65,7 @@ export default function Sidebar() {
         <Group className={classes.header} justify="space-between">
           <IconUserCircle size={28} color="white" />
           <Code fw={700} className={classes.version}>
-            v0.0.1
+            v0.0.2
           </Code>
         </Group>
         {links}

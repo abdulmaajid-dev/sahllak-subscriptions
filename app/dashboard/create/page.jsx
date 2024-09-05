@@ -18,16 +18,18 @@ import { notifications } from "@mantine/notifications";
 
 //Icons
 import { IconUserPlus } from "@tabler/icons-react";
-import Notification from "../../../components/UI/Notification/Notification";
+import { IconExclamationCircle } from "@tabler/icons-react";
+import { IconUserUp } from "@tabler/icons-react";
+
+//styles
+import classes from "../subscriptions/subscriptions.module.css";
 
 export default function Create() {
-  const [opened, setOpened] = useState(false);
-  const [error, setError] = useState(false);
-
   const form = useForm({
     initialValues: {
       clientName: "",
       email: "",
+      phoneNumber: "",
       clientCompany: "",
       onboardingCost: "",
       subscriptionCost: "",
@@ -42,12 +44,19 @@ export default function Create() {
       !form.values.clientName ||
       !form.values.onboardingCost ||
       !form.values.subscriptionCost ||
-      !form.values.email
+      !form.values.email ||
+      !form.values.phoneNumber
     ) {
-      setError(true);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      setError(false);
-      return;
+      return notifications.show({
+        title: "Error Submitting",
+        message: "Please fill in all the client details!",
+        color: "red",
+        radius: "sm",
+        bg: "#d63031",
+        withBorder: true,
+        icon: <IconExclamationCircle />,
+        classNames: classes,
+      });
     }
 
     form.reset();
@@ -57,19 +66,19 @@ export default function Create() {
       body: JSON.stringify({
         client_name: form.values.clientName,
         email: form.values.email,
+        client_phone: form.values.phoneNumber,
         client_company: form.values.clientCompany,
         onboarding_cost: form.values.onboardingCost * 1000,
         subscription_cost: form.values.subscriptionCost * 1000,
       }),
     });
     notifications.show({
-      title: "Default notification",
-      message: "hello world!",
+      title: "Client Successfully Added",
+      color: "green",
+      message: "The client details have been added to the database",
+      icon: <IconUserUp />,
+      bg: "#55efc4",
     });
-
-    setOpened(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setOpened(false);
   };
 
   return (
@@ -143,6 +152,16 @@ export default function Create() {
             />
             <TextInput
               required
+              label="Client Phone"
+              placeholder="78784037"
+              value={form.values.phoneNumber}
+              onChange={(event) =>
+                form.setFieldValue("phoneNumber", event.currentTarget.value)
+              }
+              radius="md"
+            />
+            <TextInput
+              required
               label="Organization name"
               placeholder="Sahllak Innovations LLC."
               value={form.values.clientCompany}
@@ -183,18 +202,6 @@ export default function Create() {
             </Button>
           </Group>
         </form>
-        <Notification
-          opened={opened}
-          color="green"
-          title="User added"
-          description="The subscription user has been added, Please head to the dashboard to view them."
-        />
-        <Notification
-          opened={error}
-          color="red"
-          title="User Adding failed"
-          description="Please ensure all the fields are filled."
-        />
       </Paper>
     </>
   );

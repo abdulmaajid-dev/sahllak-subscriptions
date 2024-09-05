@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   const body = await request.json();
-  const { id, onboardingCost, clientName, clientEmail } = body;
+  const { id, onboardingCost, clientName, clientEmail, clientPhone } = body;
 
   const myHeaders = new Headers();
 
@@ -20,8 +20,8 @@ export async function POST(request) {
     billing_data: {
       first_name: clientName,
       last_name: "-",
-      phone_number: "+96878784037",
-      email: clientEmail,
+      phone_number: clientPhone ? clientPhone : 78784037,
+      email: clientEmail ? clientEmail : "mehdi@sahllak.com",
     },
   });
 

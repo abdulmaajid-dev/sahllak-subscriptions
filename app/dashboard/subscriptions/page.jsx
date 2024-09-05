@@ -11,25 +11,51 @@ import {
   Button,
   rem,
   Badge,
+  ActionIcon,
+  TextInput,
 } from "@mantine/core";
-import Notification from "../../../components/UI/Notification/Notification";
-
+import { notifications } from "@mantine/notifications";
 import { useClipboard } from "@mantine/hooks";
+import { render } from "@react-email/components";
+import AWS from "../../../aws-config";
 
 import ActiveSubscriptionsSkeleton from "../../../components/UI/Skeleton/ActiveSubscriptionsSkeleton";
-import { IconArrowUpRight } from "@tabler/icons-react";
+import EmailTemplate from "../../../components/EmailTemplate/EmailTemplate";
 import { useState, useEffect } from "react";
 
-import { createClient } from "@supabase/supabase-js";
+//Icons
+import { IconUnlink } from "@tabler/icons-react";
+import { IconBan } from "@tabler/icons-react";
+import { IconArrowUpRight } from "@tabler/icons-react";
+import { IconEdit } from "@tabler/icons-react";
+import { IconTrashX } from "@tabler/icons-react";
+import { IconExclamationCircle } from "@tabler/icons-react";
+import { IconDeviceFloppy } from "@tabler/icons-react";
+
+//styles
+import classes from "./subscriptions.module.css";
 
 export default function Subscriptions() {
+  //States of the page start here
   const clipboard = useClipboard();
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_KEY
-  );
+  const [scrolled, setScrolled] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [rowData, setRowData] = useState([]);
+  const [opened, setOpened] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [linkLoading, setLinkLoading] = useState(false);
 
+  //Row Editing States
+  const [rowId, setRowId] = useState(null);
+  const [editedData, setEditedData] = useState({
+    clientName: "",
+    clientEmail: "",
+    clientOnboardingCost: 0,
+    clientSubscriptionCost: 0,
+  });
+
+  //Functions of the page start here
   const getAuthorizationToken = async () => {
     setLoading(true);
 
@@ -46,18 +72,11 @@ export default function Subscriptions() {
     setLoading(false);
   };
 
-  const [scrolled, setScrolled] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [rowData, setRowData] = useState([]);
-  const [opened, setOpened] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [linkLoading, setLinkLoading] = useState(false);
-
   useEffect(() => {
     getAuthorizationToken();
   }, []);
 
-  const getPaymentLink = async (id, oc, name, email) => {
+  const getPaymentLink = async (id, oc, name, email, phone) => {
     setLinkLoading(true);
     const response = await fetch("/api/paymob", {
       method: "POST",
@@ -66,6 +85,7 @@ export default function Subscriptions() {
         onboardingCost: oc,
         clientName: name,
         clientEmail: email,
+        clientPhone: phone,
       }),
     }).then((res) => {
       return res.json();
@@ -77,30 +97,40 @@ export default function Subscriptions() {
       `https://oman.paymob.com/unifiedcheckout/?publicKey=${process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY}&clientSecret=${client_secret}`
     );
 
-    const { data, error } = await supabase
-      .from("clients")
-      .select("failed_attempts")
-      .eq("id", 55)
-      .single();
-    console.log(data);
+    notifications.show({
+      title: "Payment Link Created!",
+      color: "green",
+      message:
+        "The payment link has been created and has been copied to your clipboard!",
+      icon: <IconUnlink />,
+    });
 
-    const { failed_attempts } = data;
-
-    const { data2 } = await supabase
-      .from("clients")
-      .update({ failed_attempts: failed_attempts + 1 })
-      .eq("id", 55);
-
-    console.log(data2);
-
-    setOpened(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setOpened(false);
     setLinkLoading(false);
   };
 
-  const handleChargeClient = async (id, sc) => {
+  const handleChargeClient = async (id, sc, sd) => {
+    const startDate = new Date(sd);
+    const endDate = new Date();
+
+    const difference = Math.floor(
+      (endDate - startDate) / (1000 * 60 * 60 * 24)
+    );
+
+    if (difference < 30) {
+      return notifications.show({
+        title: "Action not Allowed",
+        message: "It hasn't been 30 days since the last charge!",
+        color: "red",
+        radius: "sm",
+        bg: "#d63031",
+        withBorder: true,
+        icon: <IconExclamationCircle />,
+        classNames: classes,
+      });
+    }
+
     setButtonDisabled(true);
+    setLinkLoading(true);
     const response = await fetch("/api/subscription", {
       method: "POST",
       body: JSON.stringify({
@@ -110,13 +140,124 @@ export default function Subscriptions() {
     }).then((res) => {
       return res.json();
     });
-    setSuccess(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    notifications.show({
+      title: "Subscription Charged Successfully",
+      color: "green",
+      message: "The client has been charged!",
+      icon: <IconCreditCardPay />,
+      bg: "#55efc4",
+    });
+    setLinkLoading(false);
     setButtonDisabled(false);
-    setSuccess(false);
     getAuthorizationToken();
   };
 
+  const sendEmail = async (clientName, clientEmail, sd, sc) => {
+    const startDate = new Date(sd);
+    const paymentDueDate = startDate.getDate() + 30;
+
+    const body = render(
+      <EmailTemplate
+        clientName={clientName}
+        subscriptionCost={sc}
+        clientEmail={clientEmail}
+        subscriptionDate={sd}
+      />
+    );
+
+    const params = {
+      Destination: {
+        ToAddresses: [clientEmail],
+      },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: body,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "Monthly Payment Charge",
+        },
+      },
+      Source: "payments@sahllak.com",
+    };
+
+    const sendPromise = new AWS.SES({ apiVersion: "2010-12-01" })
+      .sendEmail(params)
+      .promise();
+
+    sendPromise.then((data) => {
+      console.log(data.MessageId);
+      return new Response("Email sent successfully", { status: 200 });
+    });
+  };
+
+  const setRowEditing = (id, name, email, oc, sc) => {
+    if (!id) {
+      setEditedData({
+        clientName: "",
+        clientEmail: "",
+        clientOnboardingCost: "",
+        clientSubscriptionCost: "",
+      });
+      return setRowId(null);
+    }
+    setRowId(id);
+
+    setEditedData({
+      clientName: name,
+      clientEmail: email,
+      clientOnboardingCost: oc / 1000,
+      clientSubscriptionCost: sc / 1000,
+    });
+  };
+
+  const handleEditChange = (e) => {
+    setEditedData({ ...editedData, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSave = async () => {
+    setLoading(true);
+    const response = await fetch("/api/client", {
+      method: "PUT",
+      body: JSON.stringify({
+        id: rowId,
+        clientName: editedData.clientName,
+        clientEmail: editedData.clientEmail,
+        clientOC: parseFloat(editedData.clientOnboardingCost) * 1000,
+        clientSC: parseFloat(editedData.clientSubscriptionCost) * 1000,
+      }),
+    });
+    getAuthorizationToken();
+
+    notifications.show({
+      title: "Client Details Updated",
+      color: "green",
+      message: "The new client details, have been updated and saved.",
+      icon: <IconUnlink />,
+    });
+
+    setRowId(null);
+    setEditedData({
+      clientName: "",
+      clientEmail: "",
+      clientOnboardingCost: "",
+      clientSubscriptionCost: "",
+    });
+  };
+
+  const handleRowDelete = async () => {
+    notifications.show({
+      title: "Deleting functionality coming soon!",
+      color: "blue",
+      message: "You will be able to delete clients in the next update!",
+      icon: <IconUnlink />,
+    });
+  };
+
+  //UI of the page starts here
   return (
     <>
       <Title ml={50} mt={50} style={{ fontWeight: 800 }}>
@@ -160,18 +301,6 @@ export default function Subscriptions() {
             {5 > 0 ? "increase" : "decrease"} compared to last month
           </Text>
         </Paper>
-        <Notification
-          opened={opened}
-          color="green"
-          title="Payment Link Created!"
-          description="The payment link is automatically copied to your clipboard! Just paste to open it or send it to a client."
-        />
-        <Notification
-          opened={success}
-          color="green"
-          title="Subscription activated"
-          description="The client was successfully charged for their subscription payment."
-        />
       </Group>
 
       <Card
@@ -190,10 +319,12 @@ export default function Subscriptions() {
             h={rem(500)}
             onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
           >
-            <Table w={rem(1300)}>
+            <Table w={rem(1200)}>
               <Table.Thead>
                 <Table.Tr>
+                  <Table.Th>Actions</Table.Th>
                   <Table.Th>Client Name</Table.Th>
+                  <Table.Th>Client Email</Table.Th>
                   <Table.Th>Company Name</Table.Th>
                   <Table.Th>Onboarding Cost</Table.Th>
                   <Table.Th>Subscription Cost</Table.Th>
@@ -208,21 +339,114 @@ export default function Subscriptions() {
                 {rowData.length !== 0 &&
                   rowData.map((row) => (
                     <Table.Tr key={row.id}>
-                      <Table.Td>{row.client_name}</Table.Td>
-                      <Table.Td>{row.client_company_name}</Table.Td>
                       <Table.Td>
-                        <Group justify="center" mt="sm" mb="xs">
-                          <Badge color="green" size="lg">
-                            {row.onboarding_cost / 1000} OMR
-                          </Badge>
-                        </Group>
+                        {rowId == row.id ? (
+                          <ActionIcon
+                            variant="transparent"
+                            size="xl"
+                            onClick={() => {
+                              setRowEditing();
+                            }}
+                          >
+                            <IconBan stroke={1.5} color="red" />
+                          </ActionIcon>
+                        ) : (
+                          <ActionIcon
+                            variant="transparent"
+                            size="xl"
+                            onClick={() => {
+                              setRowEditing(
+                                row.id,
+                                row.client_name,
+                                row.email,
+                                row.onboarding_cost,
+                                row.subscription_cost
+                              );
+                            }}
+                          >
+                            <IconEdit stroke={1.5} />
+                          </ActionIcon>
+                        )}
+                        {rowId == row.id ? (
+                          <ActionIcon
+                            variant="default"
+                            size="xl"
+                            onClick={handleEditSave}
+                          >
+                            <IconDeviceFloppy stroke={1.5} color="green" />
+                          </ActionIcon>
+                        ) : (
+                          <ActionIcon
+                            variant="default"
+                            size="xl"
+                            onClick={handleRowDelete}
+                          >
+                            <IconTrashX stroke={1.5} color="red" />
+                          </ActionIcon>
+                        )}
                       </Table.Td>
                       <Table.Td>
-                        <Group justify="center" mt="sm" mb="xs">
-                          <Badge color="cyan" size="lg">
-                            {row.subscription_cost / 1000} OMR
-                          </Badge>
-                        </Group>
+                        {rowId == row.id ? (
+                          <TextInput
+                            variant="filled"
+                            placeholder="Client name"
+                            name="clientName"
+                            value={editedData.clientName}
+                            onChange={handleEditChange}
+                          />
+                        ) : (
+                          row.client_name
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        {rowId == row.id ? (
+                          <TextInput
+                            variant="filled"
+                            placeholder="Email"
+                            name="clientEmail"
+                            value={editedData.clientEmail}
+                            onChange={handleEditChange}
+                          />
+                        ) : (
+                          row.email
+                        )}
+                      </Table.Td>
+                      <Table.Td>{row.client_company_name}</Table.Td>
+                      <Table.Td>
+                        {rowId == row.id ? (
+                          <TextInput
+                            variant="filled"
+                            placeholder="Onboarding Cost"
+                            name="clientOnboardingCost"
+                            type="number"
+                            value={editedData.clientOnboardingCost}
+                            onChange={handleEditChange}
+                          />
+                        ) : (
+                          <Group justify="center" mt="sm" mb="xs">
+                            <Badge color="green" size="lg">
+                              {row.onboarding_cost / 1000} OMR
+                            </Badge>
+                          </Group>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        {rowId == row.id ? (
+                          <TextInput
+                            variant="filled"
+                            placeholder="Subscription Cost"
+                            name="clientSubscriptionCost"
+                            type="number"
+                            value={editedData.clientSubscriptionCost}
+                            onChange={handleEditChange}
+                          />
+                        ) : (
+                          <Group justify="center" mt="sm" mb="xs">
+                            <Badge color="cyan" size="lg">
+                              {row.subscription_cost / 1000} OMR
+                            </Badge>
+                          </Group>
+                        )}
                       </Table.Td>
                       <Table.Td>
                         <Button
@@ -235,7 +459,8 @@ export default function Subscriptions() {
                               row.id,
                               row.onboarding_cost,
                               row.client_name,
-                              row.email
+                              row.email,
+                              row.client_phone
                             );
                           }}
                         >
@@ -269,8 +494,19 @@ export default function Subscriptions() {
                           size="sm"
                           radius="l"
                           disabled={row.client_card ? false : true}
+                          loading={linkLoading}
                           onClick={() => {
-                            handleChargeClient(row.id, row.subscription_cost);
+                            handleChargeClient(
+                              row.id,
+                              row.subscription_cost,
+                              row.sub_date_start
+                            );
+                            sendEmail(
+                              row.client_name,
+                              row.email,
+                              row.sub_date_start,
+                              row.subscription_cost
+                            );
                           }}
                         >
                           Charge Client

@@ -1,0 +1,14 @@
+.title {
+  color: var(--mantine-color-white) !important;
+  font-weight: bold;
+}
+.description {
+  color: var(--mantine-color-white) !important;
+  font-weight: 500;
+}
+.closeButton {
+  color: var(--mantine-color-white) !important;
+}
+.closeButton:hover {
+  background-color: #ff7675;
+}

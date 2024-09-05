@@ -45,6 +45,21 @@ export async function POST(request) {
         .update({ client_card_token: false, is_refunded: true })
         .eq("client_secret", client_secret);
 
+      const { data } = await supabase
+        .from("clients")
+        .select("failed_attempts")
+        .eq("client_secret", client_secret)
+        .single();
+
+      const { failed_attempts } = data;
+
+      const { data2 } = await supabase
+        .from("clients")
+        .update({ failed_attempts: failed_attempts + 1 })
+        .eq("client_secret", client_secret);
+
+      console.log(data2);
+
       const myHeaders = new Headers();
 
       myHeaders.append(

@@ -28,6 +28,7 @@ export async function POST(request) {
   const {
     client_name,
     email,
+    client_phone,
     client_company,
     onboarding_cost,
     subscription_cost,
@@ -41,10 +42,36 @@ export async function POST(request) {
   const data = await supabase.from("clients").insert({
     client_name: client_name,
     email: email,
+    client_phone: client_phone,
     client_company_name: client_company,
     onboarding_cost: onboarding_cost,
     subscription_cost: subscription_cost,
   });
+
+  console.log(data);
+
+  return new NextResponse(JSON.stringify(data));
+}
+
+export async function PUT(request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY
+  );
+
+  const body = await request.json();
+
+  const { id, clientName, clientEmail, clientOC, clientSC } = body;
+
+  const data = await supabase
+    .from("clients")
+    .update({
+      client_name: clientName,
+      email: clientEmail,
+      onboarding_cost: clientOC,
+      subscription_cost: clientSC,
+    })
+    .eq("id", id);
 
   console.log(data);
 
