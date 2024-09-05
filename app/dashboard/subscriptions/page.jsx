@@ -30,6 +30,7 @@ import { IconArrowUpRight } from "@tabler/icons-react";
 import { IconEdit } from "@tabler/icons-react";
 import { IconTrashX } from "@tabler/icons-react";
 import { IconExclamationCircle } from "@tabler/icons-react";
+import { IconCreditCardPay } from "@tabler/icons-react";
 import { IconDeviceFloppy } from "@tabler/icons-react";
 
 //styles
