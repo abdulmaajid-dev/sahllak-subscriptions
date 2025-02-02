@@ -113,22 +113,22 @@ export default function Subscriptions() {
     const startDate = new Date(sd);
     const endDate = new Date();
 
-    const difference = Math.floor(
-      (endDate - startDate) / (1000 * 60 * 60 * 24)
-    );
+    // const difference = Math.floor(
+    //   (endDate - startDate) / (1000 * 60 * 60 * 24)
+    // );
 
-    if (difference < 30) {
-      return notifications.show({
-        title: "Action not Allowed",
-        message: "It hasn't been 30 days since the last charge!",
-        color: "red",
-        radius: "sm",
-        bg: "#d63031",
-        withBorder: true,
-        icon: <IconExclamationCircle />,
-        classNames: classes,
-      });
-    }
+    // if (difference < 30) {
+    //   return notifications.show({
+    //     title: "Action not Allowed",
+    //     message: "It hasn't been 30 days since the last charge!",
+    //     color: "red",
+    //     radius: "sm",
+    //     bg: "#d63031",
+    //     withBorder: true,
+    //     icon: <IconExclamationCircle />,
+    //     classNames: classes,
+    //   });
+    // }
 
     setButtonDisabled(true);
     setLinkLoading(true);
@@ -502,12 +502,12 @@ export default function Subscriptions() {
                               row.subscription_cost,
                               row.sub_date_start
                             );
-                            sendEmail(
-                              row.client_name,
-                              row.email,
-                              row.sub_date_start,
-                              row.subscription_cost
-                            );
+                            // sendEmail(
+                            //   row.client_name,
+                            //   row.email,
+                            //   row.sub_date_start,
+                            //   row.subscription_cost
+                            // );
                           }}
                         >
                           Charge Client
