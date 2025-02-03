@@ -139,7 +139,7 @@ export default function Subscriptions() {
         subscriptionCost: sc,
       }),
     }).then((res) => {
-      return res.json();
+      console.log(res);
     });
     notifications.show({
       title: "Subscription Charged Successfully",
