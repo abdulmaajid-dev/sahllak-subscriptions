@@ -1,17 +1,31 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
-export default function middleware(request) {
-  let LoginCookie = cookies().get("isLoggedIn");
-  let url = request.url;
+export default async function middleware(request) {
+  // Use request.cookies instead of importing cookies
+  const LoginCookie = await request.cookies.get("isLoggedIn");
+  const { pathname } = await request.nextUrl;
 
-  if (!LoginCookie && url.includes("dashboard")) {
-    return NextResponse.redirect("http://localhost:3000/");
+  // Redirect logged-out users from dashboard
+  if (!LoginCookie && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (LoginCookie && url === "http://localhost:3000/") {
+  // Redirect logged-in users from home page
+  if (LoginCookie && pathname === "/") {
     return NextResponse.redirect(
-      "http://localhost:3000/dashboard/subscriptions"
+      new URL("/dashboard/subscriptions", request.url)
     );
   }
+
+  return NextResponse.next();
 }
+
+// Only run middleware on specific paths
+export const config = {
+  matcher: [
+    "/",
+    "/dashboard/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)"
+  ]
+};
+

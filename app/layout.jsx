@@ -13,18 +13,21 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" data-mantine-color-scheme="light">
       <head>
-        <ColorSchemeScript />
+        <ColorSchemeScript defaultColorScheme="light" />
         <link rel="shortcut icon" href="/favicon.svg" />
-        <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-        />
+        {/* Remove explicit viewport meta as Next.js handles this automatically */}
       </head>
       <body>
-        <MantineProvider theme={theme}>
-          <Notifications />
+        <MantineProvider 
+          theme={theme}
+          defaultColorScheme="light"
+          withCssVariables
+          withGlobalStyles
+          withNormalizeCSS
+        >
+          <Notifications position="top-right" zIndex={1000} />
           {children}
         </MantineProvider>
       </body>

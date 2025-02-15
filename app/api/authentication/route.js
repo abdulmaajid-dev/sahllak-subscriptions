@@ -1,17 +1,21 @@
 import { cookies } from "next/headers";
 
 export async function POST(request) {
-  cookies().set("isLoggedIn", true);
 
-  const cookieStore = cookies().get("isLoggedIn");
+  const cookieStore = await cookies();
+  cookieStore.set("isLoggedIn", true);
 
-  return new Response(JSON.stringify(cookieStore));
+  const result = cookieStore.get("isLoggedIn");
+
+  return new Response(JSON.stringify(result));
 }
 
 export async function GET(request) {
-  cookies().delete("isLoggedIn");
+  
+  const cookieStore = await cookies();
+  cookieStore.delete("isLoggedIn");
 
-  const cookieStore = cookies().getAll();
+  const result = cookieStore.getAll();
 
-  return new Response(JSON.stringify(cookieStore));
+  return new Response(JSON.stringify(result));
 }
